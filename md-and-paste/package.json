@@ -1,0 +1,132 @@
+{
+  "name": "md-and-paste",
+  "displayName": "MD and Paste",
+  "description": "Markdown作業効率化拡張 — 画像貼り付け・構文テンプレ挿入",
+  "version": "0.1.0",
+  "publisher": "local",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": ["Other"],
+  "activationEvents": [
+    "onLanguage:markdown"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "configuration": {
+      "title": "MD and Paste",
+      "properties": {
+        "mdAndPaste.image.saveLocationMode": {
+          "type": "string",
+          "default": "relative",
+          "enum": ["relative", "workspace"],
+          "description": "画像保存先の基準。relative=Markdownファイル基準、workspace=ワークスペースルート基準"
+        },
+        "mdAndPaste.image.saveFolder": {
+          "type": "string",
+          "default": "assets",
+          "description": "画像保存先フォルダ名"
+        },
+        "mdAndPaste.image.altTextMode": {
+          "type": "string",
+          "default": "prompt",
+          "enum": ["prompt", "empty", "filename"],
+          "description": "altテキストの設定。prompt=入力ダイアログ、empty=空、filename=ファイル名自動"
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "mdAndPaste.pasteImage",
+        "title": "%command.pasteImage%",
+        "enablement": "editorLangId == markdown"
+      },
+      {
+        "command": "mdAndPaste.insertTable",
+        "title": "%command.insertTable%",
+        "enablement": "editorLangId == markdown"
+      },
+      {
+        "command": "mdAndPaste.insertCodeBlock",
+        "title": "%command.insertCodeBlock%",
+        "enablement": "editorLangId == markdown"
+      },
+      {
+        "command": "mdAndPaste.insertChecklist",
+        "title": "%command.insertChecklist%",
+        "enablement": "editorLangId == markdown"
+      },
+      {
+        "command": "mdAndPaste.insertDetails",
+        "title": "%command.insertDetails%",
+        "enablement": "editorLangId == markdown"
+      },
+      {
+        "command": "mdAndPaste.insertBlockquote",
+        "title": "%command.insertBlockquote%",
+        "enablement": "editorLangId == markdown"
+      },
+      {
+        "command": "mdAndPaste.insertMermaidFlowchart",
+        "title": "%command.insertMermaidFlowchart%",
+        "enablement": "editorLangId == markdown"
+      },
+      {
+        "command": "mdAndPaste.insertMermaidSequence",
+        "title": "%command.insertMermaidSequence%",
+        "enablement": "editorLangId == markdown"
+      },
+      {
+        "command": "mdAndPaste.insertMermaidEr",
+        "title": "%command.insertMermaidEr%",
+        "enablement": "editorLangId == markdown"
+      },
+      {
+        "command": "mdAndPaste.insertMermaidState",
+        "title": "%command.insertMermaidState%",
+        "enablement": "editorLangId == markdown"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "submenu": "mdAndPaste.submenu",
+          "group": "mdAndPaste",
+          "when": "editorLangId == markdown"
+        }
+      ],
+      "mdAndPaste.submenu": [
+        { "command": "mdAndPaste.pasteImage", "group": "1_image" },
+        { "command": "mdAndPaste.insertTable", "group": "2_markdown" },
+        { "command": "mdAndPaste.insertCodeBlock", "group": "2_markdown" },
+        { "command": "mdAndPaste.insertChecklist", "group": "2_markdown" },
+        { "command": "mdAndPaste.insertDetails", "group": "2_markdown" },
+        { "command": "mdAndPaste.insertBlockquote", "group": "2_markdown" },
+        { "command": "mdAndPaste.insertMermaidFlowchart", "group": "3_mermaid" },
+        { "command": "mdAndPaste.insertMermaidSequence", "group": "3_mermaid" },
+        { "command": "mdAndPaste.insertMermaidEr", "group": "3_mermaid" },
+        { "command": "mdAndPaste.insertMermaidState", "group": "3_mermaid" }
+      ]
+    },
+    "submenus": [
+      {
+        "id": "mdAndPaste.submenu",
+        "label": "%submenu.label%"
+      }
+    ]
+  },
+  "scripts": {
+    "build": "esbuild ./src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
+    "watch": "esbuild ./src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "package": "npx @vscode/vsce package --no-dependencies --allow-missing-repository"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "esbuild": "^0.20.0",
+    "typescript": "^5.3.0",
+    "vitest": "^2.0.0"
+  }
+}

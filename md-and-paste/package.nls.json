@@ -1,0 +1,13 @@
+{
+  "command.pasteImage": "MD and Paste: Paste Image",
+  "command.insertTable": "MD and Paste: Insert Table",
+  "command.insertCodeBlock": "MD and Paste: Insert Code Block",
+  "command.insertChecklist": "MD and Paste: Insert Checklist",
+  "command.insertDetails": "MD and Paste: Insert Details/Summary",
+  "command.insertBlockquote": "MD and Paste: Insert Blockquote",
+  "command.insertMermaidFlowchart": "MD and Paste: Insert Mermaid Flowchart",
+  "command.insertMermaidSequence": "MD and Paste: Insert Mermaid Sequence Diagram",
+  "command.insertMermaidEr": "MD and Paste: Insert Mermaid ER Diagram",
+  "command.insertMermaidState": "MD and Paste: Insert Mermaid State Diagram",
+  "submenu.label": "MD and Paste"
+}

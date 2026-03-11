@@ -25,6 +25,9 @@ export const commands = {
   registerCommand: (_command: string, _callback: (...args: unknown[]) => unknown) => ({
     dispose: () => {},
   }),
+  registerTextEditorCommand: (_command: string, _callback: (...args: unknown[]) => unknown) => ({
+    dispose: () => {},
+  }),
   executeCommand: async (_command: string, ..._args: unknown[]) => undefined,
 };
 

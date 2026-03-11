@@ -76,5 +76,9 @@ export const buildMarkdownLink = (
   altText: string,
 ): string => {
   const normalized = normalizePath(relativePath);
-  return `![${altText}](${normalized})`;
+  // VitePress等の静的サイトジェネレータ対応: ./ 付き相対パスにする
+  const withDotSlash = normalized.startsWith('./') || normalized.startsWith('../')
+    ? normalized
+    : `./${normalized}`;
+  return `![${altText}](${withDotSlash})`;
 };

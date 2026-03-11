@@ -1,0 +1,13 @@
+{
+  "command.pasteImage": "Markdown Power Tools: 画像を貼り付け",
+  "command.insertTable": "Markdown Power Tools: テーブルを挿入",
+  "command.insertCodeBlock": "Markdown Power Tools: コードブロックを挿入",
+  "command.insertChecklist": "Markdown Power Tools: チェックリストを挿入",
+  "command.insertDetails": "Markdown Power Tools: details/summaryを挿入",
+  "command.insertBlockquote": "Markdown Power Tools: 引用を挿入",
+  "command.insertMermaidFlowchart": "Markdown Power Tools: Mermaid フローチャートを挿入",
+  "command.insertMermaidSequence": "Markdown Power Tools: Mermaid シーケンス図を挿入",
+  "command.insertMermaidEr": "Markdown Power Tools: Mermaid ER図を挿入",
+  "command.insertMermaidState": "Markdown Power Tools: Mermaid ステート図を挿入",
+  "submenu.label": "Markdown Power Tools"
+}

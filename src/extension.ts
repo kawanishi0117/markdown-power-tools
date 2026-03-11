@@ -33,14 +33,12 @@ export const activate = (context: vscode.ExtensionContext) => {
     context.subscriptions.push(vscode.commands.registerCommand(id, handler));
   }
 
-  // Ctrl+V オーバーライド: Markdown + 画像クリップボード時のみフック
-  const overridePaste = vscode.commands.registerCommand(
+  // Ctrl+V オーバーライド: Markdownエディタのテキスト編集中 + 画像クリップボード時のみフック
+  const overridePaste = vscode.commands.registerTextEditorCommand(
     'editor.action.clipboardPasteAction',
-    async () => {
-      const editor = vscode.window.activeTextEditor;
-
+    async (textEditor) => {
       // Markdown以外 → 標準貼り付けに委譲
-      if (!editor || editor.document.languageId !== 'markdown') {
+      if (textEditor.document.languageId !== 'markdown') {
         await vscode.commands.executeCommand('default:editor.action.clipboardPasteAction');
         return;
       }

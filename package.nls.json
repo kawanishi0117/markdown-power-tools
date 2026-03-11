@@ -1,0 +1,13 @@
+{
+  "command.pasteImage": "Markdown Power Tools: Paste Image",
+  "command.insertTable": "Markdown Power Tools: Insert Table",
+  "command.insertCodeBlock": "Markdown Power Tools: Insert Code Block",
+  "command.insertChecklist": "Markdown Power Tools: Insert Checklist",
+  "command.insertDetails": "Markdown Power Tools: Insert Details/Summary",
+  "command.insertBlockquote": "Markdown Power Tools: Insert Blockquote",
+  "command.insertMermaidFlowchart": "Markdown Power Tools: Insert Mermaid Flowchart",
+  "command.insertMermaidSequence": "Markdown Power Tools: Insert Mermaid Sequence Diagram",
+  "command.insertMermaidEr": "Markdown Power Tools: Insert Mermaid ER Diagram",
+  "command.insertMermaidState": "Markdown Power Tools: Insert Mermaid State Diagram",
+  "submenu.label": "Markdown Power Tools"
+}

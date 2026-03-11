@@ -87,16 +87,26 @@ describe('resolveImageDir', () => {
 describe('buildMarkdownLink', () => {
   it('altテキストありで画像リンクを生成する', () => {
     const result = buildMarkdownLink('assets/20240315-090530-123.png', 'スクリーンショット');
-    expect(result).toBe('![スクリーンショット](assets/20240315-090530-123.png)');
+    expect(result).toBe('![スクリーンショット](./assets/20240315-090530-123.png)');
   });
 
   it('altテキストが空文字の場合も正しく生成する', () => {
     const result = buildMarkdownLink('assets/20240315-090530-123.png', '');
-    expect(result).toBe('![](assets/20240315-090530-123.png)');
+    expect(result).toBe('![](./assets/20240315-090530-123.png)');
   });
 
   it('パス内のバックスラッシュをスラッシュに正規化する', () => {
     const result = buildMarkdownLink('assets\\images\\test.png', 'テスト');
-    expect(result).toBe('![テスト](assets/images/test.png)');
+    expect(result).toBe('![テスト](./assets/images/test.png)');
+  });
+
+  it('../ で始まる相対パスには ./ を付けない', () => {
+    const result = buildMarkdownLink('../assets/test.png', 'テスト');
+    expect(result).toBe('![テスト](../assets/test.png)');
+  });
+
+  it('./ で始まるパスには重複して付けない', () => {
+    const result = buildMarkdownLink('./assets/test.png', 'テスト');
+    expect(result).toBe('![テスト](./assets/test.png)');
   });
 });

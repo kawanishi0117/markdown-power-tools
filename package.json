@@ -1,6 +1,6 @@
 {
-  "name": "md-and-paste",
-  "displayName": "MD and Paste",
+  "name": "markdown-power-tools",
+  "displayName": "Markdown Power Tools",
   "description": "Markdown作業効率化拡張 — 画像貼り付け・構文テンプレ挿入",
   "version": "0.1.0",
   "publisher": "local",
@@ -14,7 +14,7 @@
   "main": "./dist/extension.js",
   "contributes": {
     "configuration": {
-      "title": "MD and Paste",
+      "title": "Markdown Power Tools",
       "properties": {
         "mdAndPaste.image.saveLocationMode": {
           "type": "string",

@@ -3,9 +3,10 @@
   "displayName": "Markdown Power Tools",
   "description": "Markdown作業効率化拡張 — 画像貼り付け・構文テンプレ挿入",
   "version": "0.1.0",
+  "license": "MIT",
   "publisher": "local",
   "engines": {
-    "vscode": "^1.85.0"
+    "vscode": "^1.97.0"
   },
   "categories": ["Other"],
   "activationEvents": [
@@ -16,73 +17,68 @@
     "configuration": {
       "title": "Markdown Power Tools",
       "properties": {
-        "mdAndPaste.image.saveLocationMode": {
+        "mdPowerTools.image.saveLocationMode": {
           "type": "string",
           "default": "relative",
           "enum": ["relative", "workspace"],
           "description": "画像保存先の基準。relative=Markdownファイル基準、workspace=ワークスペースルート基準"
         },
-        "mdAndPaste.image.saveFolder": {
+        "mdPowerTools.image.saveFolder": {
           "type": "string",
           "default": "assets",
           "description": "画像保存先フォルダ名"
         },
-        "mdAndPaste.image.altTextMode": {
+        "mdPowerTools.image.altTextMode": {
           "type": "string",
           "default": "prompt",
           "enum": ["prompt", "empty", "filename"],
-          "description": "altテキストの設定。prompt=入力ダイアログ、empty=空、filename=ファイル名自動"
+          "description": "altテキストの設定。prompt=プレースホルダで編集可能、empty=空、filename=ファイル名自動"
         }
       }
     },
     "commands": [
       {
-        "command": "mdAndPaste.pasteImage",
-        "title": "%command.pasteImage%",
-        "enablement": "editorLangId == markdown"
-      },
-      {
-        "command": "mdAndPaste.insertTable",
+        "command": "mdPowerTools.insertTable",
         "title": "%command.insertTable%",
         "enablement": "editorLangId == markdown"
       },
       {
-        "command": "mdAndPaste.insertCodeBlock",
+        "command": "mdPowerTools.insertCodeBlock",
         "title": "%command.insertCodeBlock%",
         "enablement": "editorLangId == markdown"
       },
       {
-        "command": "mdAndPaste.insertChecklist",
+        "command": "mdPowerTools.insertChecklist",
         "title": "%command.insertChecklist%",
         "enablement": "editorLangId == markdown"
       },
       {
-        "command": "mdAndPaste.insertDetails",
+        "command": "mdPowerTools.insertDetails",
         "title": "%command.insertDetails%",
         "enablement": "editorLangId == markdown"
       },
       {
-        "command": "mdAndPaste.insertBlockquote",
+        "command": "mdPowerTools.insertBlockquote",
         "title": "%command.insertBlockquote%",
         "enablement": "editorLangId == markdown"
       },
       {
-        "command": "mdAndPaste.insertMermaidFlowchart",
+        "command": "mdPowerTools.insertMermaidFlowchart",
         "title": "%command.insertMermaidFlowchart%",
         "enablement": "editorLangId == markdown"
       },
       {
-        "command": "mdAndPaste.insertMermaidSequence",
+        "command": "mdPowerTools.insertMermaidSequence",
         "title": "%command.insertMermaidSequence%",
         "enablement": "editorLangId == markdown"
       },
       {
-        "command": "mdAndPaste.insertMermaidEr",
+        "command": "mdPowerTools.insertMermaidEr",
         "title": "%command.insertMermaidEr%",
         "enablement": "editorLangId == markdown"
       },
       {
-        "command": "mdAndPaste.insertMermaidState",
+        "command": "mdPowerTools.insertMermaidState",
         "title": "%command.insertMermaidState%",
         "enablement": "editorLangId == markdown"
       }
@@ -90,41 +86,40 @@
     "menus": {
       "editor/context": [
         {
-          "submenu": "mdAndPaste.submenu",
-          "group": "mdAndPaste",
+          "submenu": "mdPowerTools.submenu",
+          "group": "mdPowerTools",
           "when": "editorLangId == markdown"
         }
       ],
-      "mdAndPaste.submenu": [
-        { "command": "mdAndPaste.pasteImage", "group": "1_image" },
-        { "command": "mdAndPaste.insertTable", "group": "2_markdown" },
-        { "command": "mdAndPaste.insertCodeBlock", "group": "2_markdown" },
-        { "command": "mdAndPaste.insertChecklist", "group": "2_markdown" },
-        { "command": "mdAndPaste.insertDetails", "group": "2_markdown" },
-        { "command": "mdAndPaste.insertBlockquote", "group": "2_markdown" },
-        { "command": "mdAndPaste.insertMermaidFlowchart", "group": "3_mermaid" },
-        { "command": "mdAndPaste.insertMermaidSequence", "group": "3_mermaid" },
-        { "command": "mdAndPaste.insertMermaidEr", "group": "3_mermaid" },
-        { "command": "mdAndPaste.insertMermaidState", "group": "3_mermaid" }
+      "mdPowerTools.submenu": [
+        { "command": "mdPowerTools.insertTable", "group": "2_markdown" },
+        { "command": "mdPowerTools.insertCodeBlock", "group": "2_markdown" },
+        { "command": "mdPowerTools.insertChecklist", "group": "2_markdown" },
+        { "command": "mdPowerTools.insertDetails", "group": "2_markdown" },
+        { "command": "mdPowerTools.insertBlockquote", "group": "2_markdown" },
+        { "command": "mdPowerTools.insertMermaidFlowchart", "group": "3_mermaid" },
+        { "command": "mdPowerTools.insertMermaidSequence", "group": "3_mermaid" },
+        { "command": "mdPowerTools.insertMermaidEr", "group": "3_mermaid" },
+        { "command": "mdPowerTools.insertMermaidState", "group": "3_mermaid" }
       ]
     },
     "submenus": [
       {
-        "id": "mdAndPaste.submenu",
+        "id": "mdPowerTools.submenu",
         "label": "%submenu.label%"
       }
     ]
   },
   "scripts": {
-    "build": "esbuild ./src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node",
-    "watch": "esbuild ./src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --watch",
+    "build": "esbuild ./src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --minify --sourcemap",
+    "watch": "esbuild ./src/extension.ts --bundle --outfile=dist/extension.js --external:vscode --format=cjs --platform=node --sourcemap --watch",
     "test": "vitest run",
     "test:watch": "vitest",
     "package": "npx @vscode/vsce package --no-dependencies --allow-missing-repository"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
-    "@types/vscode": "^1.85.0",
+    "@types/vscode": "^1.97.0",
     "esbuild": "^0.20.0",
     "typescript": "^5.3.0",
     "vitest": "^2.0.0"

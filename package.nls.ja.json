@@ -1,5 +1,4 @@
 {
-  "command.pasteImage": "Markdown Power Tools: 画像を貼り付け",
   "command.insertTable": "Markdown Power Tools: テーブルを挿入",
   "command.insertCodeBlock": "Markdown Power Tools: コードブロックを挿入",
   "command.insertChecklist": "Markdown Power Tools: チェックリストを挿入",

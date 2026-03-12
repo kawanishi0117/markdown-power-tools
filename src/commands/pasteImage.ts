@@ -1,103 +1,192 @@
 import * as vscode from 'vscode';
-import * as fs from 'fs';
 import * as path from 'path';
-import { execSync } from 'child_process';
 import { getImageConfig } from '../config';
 import { generateFileName, resolveImageDir, buildMarkdownLink } from '../services/imageService';
 
-/** PowerShellコマンドを実行し、結果文字列を返す */
-const runPowerShell = (command: string): string =>
-  execSync(`powershell.exe -NoProfile -Command "${command}"`, {
-    encoding: 'utf-8',
-  }).trim();
-
-/** クリップボードに画像が存在するか確認 */
-export const hasClipboardImage = (): boolean => {
-  const result = runPowerShell(
-    "if (Get-Clipboard -Format Image) { Write-Output 'true' } else { Write-Output 'false' }",
-  );
-  return result === 'true';
+/** MIME から拡張子を決定する */
+const mimeToExtension = (mime: string): string | undefined => {
+  const map: Record<string, string> = {
+    'image/png': '.png',
+    'image/jpeg': '.jpg',
+    'image/gif': '.gif',
+    'image/webp': '.webp',
+    'image/bmp': '.bmp',
+  };
+  return map[mime];
 };
 
-/** クリップボード画像を指定パスに保存 */
-const saveClipboardImage = (absolutePath: string): void => {
-  runPowerShell(`(Get-Clipboard -Format Image).Save('${absolutePath}')`);
+/** 対応する画像 MIME 一覧 */
+const IMAGE_MIMES = ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/bmp'] as const;
+
+/** DataTransfer から画像ファイルを取得する */
+const getImageFile = (
+  dataTransfer: vscode.DataTransfer,
+): { file: vscode.DataTransferFile; mime: string } | undefined => {
+  // 明示的な画像 MIME を優先
+  for (const mime of IMAGE_MIMES) {
+    const item = dataTransfer.get(mime);
+    const file = item?.asFile();
+    if (file) return { file, mime };
+  }
+  return undefined;
 };
 
-/** altTextMode に応じて altText を決定 */
-const resolveAltText = async (
-  mode: 'prompt' | 'empty' | 'filename',
+/**
+ * フェンスドコードブロック内かどうかを判定する
+ * - CommonMark仕様: 行頭に0-3個のスペース + 3個以上の ` または ~
+ * - 開始マーカーと同じ種類のマーカーでのみ閉じる（``` で開いたら ~~~ では閉じない）
+ * - 閉じフェンスは情報文字列を持たない（マーカー + 空白のみ）
+ */
+const isInsideFencedCodeBlock = (document: vscode.TextDocument, position: vscode.Position): boolean => {
+  let insideCodeBlock = false;
+  let currentFenceMarker: '```' | '~~~' | null = null;
+
+  for (let i = 0; i < position.line; i++) {
+    const lineText = document.lineAt(i).text;
+
+    // CommonMark仕様: 行頭に0-3個のスペース + 3個以上の ` または ~
+    const fenceMatch = lineText.match(/^(\s{0,3})((`{3,})|(~{3,}))/);
+    if (!fenceMatch) continue;
+
+    const marker = fenceMatch[3] ? '```' : '~~~';
+
+    if (!insideCodeBlock) {
+      // コードブロック開始
+      insideCodeBlock = true;
+      currentFenceMarker = marker;
+    } else if (marker === currentFenceMarker) {
+      // 同じマーカーで閉じる — 閉じフェンスは情報文字列を持たない
+      const afterMarker = lineText.slice(fenceMatch[0].length).trim();
+      if (afterMarker.length === 0) {
+        insideCodeBlock = false;
+        currentFenceMarker = null;
+      }
+    }
+  }
+
+  return insideCodeBlock;
+};
+
+/** altTextMode に応じて挿入テキストを生成する */
+const buildInsertText = (
+  relativePath: string,
+  altTextMode: 'prompt' | 'empty' | 'filename',
   fileName: string,
-): Promise<string | undefined> => {
-  switch (mode) {
+): string | vscode.SnippetString => {
+  const escaped = relativePath.replace(/\\/g, '/');
+  const link = buildMarkdownLink(escaped, '');
+
+  switch (altTextMode) {
     case 'prompt': {
-      const input = await vscode.window.showInputBox({
-        prompt: '画像のaltテキストを入力',
-        placeHolder: '説明テキスト',
-      });
-      // undefined = キャンセル → 処理中断のシグナル
-      return input;
+      // SnippetString で alt テキスト部分をプレースホルダにする
+      const pathPart = link.match(/\]\((.+)\)$/)?.[1] ?? escaped;
+      return new vscode.SnippetString(`![\${1:alt text}](${pathPart})$0`);
     }
     case 'empty':
-      return '';
-    case 'filename':
-      // 拡張子を除いたファイル名を使用
-      return path.parse(fileName).name;
+      return link;
+    case 'filename': {
+      const alt = path.parse(fileName).name;
+      return buildMarkdownLink(escaped, alt);
+    }
   }
 };
 
-/** 画像貼り付けコマンド */
-export const pasteImage = async () => {
-  // 1. アクティブエディタがMarkdownか確認
-  const editor = vscode.window.activeTextEditor;
-  if (!editor || editor.document.languageId !== 'markdown') {
-    vscode.window.showWarningMessage('Markdownファイルを開いてください');
-    return;
-  }
+/** Document Paste API の provider */
+export const createPasteImageProvider = (): vscode.DocumentPasteEditProvider => ({
+  async provideDocumentPasteEdits(
+    document: vscode.TextDocument,
+    ranges: readonly vscode.Range[],
+    dataTransfer: vscode.DataTransfer,
+    _context: vscode.DocumentPasteEditContext,
+    token: vscode.CancellationToken,
+  ): Promise<vscode.DocumentPasteEdit[] | undefined> {
+    try {
+      // file / untitled 以外のスキームは対象外
+      if (!['file', 'untitled'].includes(document.uri.scheme)) {
+        return undefined;
+      }
 
-  // 2. 設定を読み込み
-  const config = getImageConfig();
+      // コードブロック内なら通常 paste に任せる
+      if (ranges.length > 0 && isInsideFencedCodeBlock(document, ranges[0].start)) {
+        return undefined;
+      }
 
-  // 3-4. クリップボードに画像があるか確認
-  if (!hasClipboardImage()) {
-    vscode.window.showInformationMessage('クリップボードに画像がありません');
-    return;
-  }
+      // クリップボードに画像がなければ通常 paste に任せる
+      const imageData = getImageFile(dataTransfer);
+      if (!imageData) {
+        return undefined;
+      }
 
-  // 5. 保存先ディレクトリを解決
-  const mdFilePath = editor.document.uri.fsPath;
-  const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
-  const imageDir = resolveImageDir(
-    mdFilePath,
-    config.saveLocationMode,
-    config.saveFolder,
-    workspaceRoot,
-  );
+      if (token.isCancellationRequested) return undefined;
 
-  // 6. ディレクトリが存在しなければ作成
-  if (!fs.existsSync(imageDir)) {
-    fs.mkdirSync(imageDir, { recursive: true });
-  }
+      // 設定を読み込み
+      const config = getImageConfig();
 
-  // 7. ファイル名を生成（既存ファイル一覧を渡して衝突回避）
-  const existingFiles = fs.readdirSync(imageDir);
-  const fileName = generateFileName(new Date(), existingFiles);
+      // 保存先ディレクトリを解決
+      const isUntitled = document.uri.scheme === 'untitled';
+      const mdFilePath = isUntitled ? undefined : document.uri.fsPath;
+      const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath;
 
-  // 8. PowerShellで画像をファイルに保存
-  const absolutePath = path.join(imageDir, fileName);
-  saveClipboardImage(absolutePath);
+      // untitled かつワークスペースなしの場合は保存先を決められない
+      if (!mdFilePath && !workspaceRoot) {
+        return undefined;
+      }
 
-  // 9. altText を決定
-  const altText = await resolveAltText(config.altTextMode, fileName);
-  if (altText === undefined) return; // キャンセル
+      const basePath = mdFilePath ?? workspaceRoot!;
+      const imageDir = resolveImageDir(
+        basePath,
+        config.saveLocationMode,
+        config.saveFolder,
+        workspaceRoot,
+      );
 
-  // 10. Markdownリンクを生成（Markdownファイルからの相対パス）
-  const mdDir = path.dirname(mdFilePath);
-  const relativePath = path.relative(mdDir, absolutePath).replace(/\\/g, '/');
-  const markdownLink = buildMarkdownLink(relativePath, altText);
+      // ファイル名を生成（拡張子は MIME から決定）
+      const ext = mimeToExtension(imageData.mime) ?? '.png';
 
-  // 11. エディタのカーソル位置にリンクを挿入
-  await editor.edit((editBuilder) => {
-    editBuilder.insert(editor.selection.active, markdownLink);
-  });
-};
+      // 保存先ディレクトリの既存ファイル一覧を取得（衝突回避のため）
+      let existingFiles: string[] = [];
+      try {
+        const dirUri = vscode.Uri.file(imageDir);
+        const entries = await vscode.workspace.fs.readDirectory(dirUri);
+        existingFiles = entries
+          .filter(([, type]) => type === vscode.FileType.File)
+          .map(([name]) => name);
+      } catch {
+        // ディレクトリが存在しない場合は空配列のまま（新規作成される）
+      }
+
+      const fileName = generateFileName(new Date(), existingFiles, ext);
+      const absolutePath = path.join(imageDir, fileName);
+      const targetUri = vscode.Uri.file(absolutePath);
+
+      // Markdown ファイルからの相対パス
+      const mdDir = path.dirname(basePath);
+      const relativePath = path.relative(mdDir, absolutePath);
+
+      // 挿入テキストを生成
+      const insertText = buildInsertText(relativePath, config.altTextMode, fileName);
+
+      // DocumentPasteEdit を構築
+      const pasteEdit = new vscode.DocumentPasteEdit(
+        insertText,
+        'Paste image as Markdown',
+        new vscode.DocumentDropOrPasteEditKind('markdown.image'),
+      );
+
+      // WorkspaceEdit でファイル作成を積む
+      const ws = new vscode.WorkspaceEdit();
+      ws.createFile(targetUri, {
+        contents: imageData.file,
+        overwrite: false,
+        ignoreIfExists: false,
+      });
+      pasteEdit.additionalEdit = ws;
+
+      return [pasteEdit];
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '不明なエラー';
+      void vscode.window.showErrorMessage(`画像の貼り付け中にエラーが発生しました: ${message}`);
+      return undefined;
+    }
+  },
+});

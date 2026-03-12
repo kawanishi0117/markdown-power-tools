@@ -35,9 +35,9 @@ Markdownファイルでクリップボードに画像があるとき、自動で
 
 | 設定キー | 説明 | 選択肢 | デフォルト |
 |---|---|---|---|
-| `mdAndPaste.image.saveLocationMode` | 画像の保存先モード | `relative` / `workspace` | `relative` |
-| `mdAndPaste.image.saveFolder` | 保存先フォルダ名 | 任意の文字列 | `assets` |
-| `mdAndPaste.image.altTextMode` | alt textの設定方法 | `prompt` / `empty` / `filename` | `prompt` |
+| `mdPowerTools.image.saveLocationMode` | 画像の保存先モード | `relative` / `workspace` | `relative` |
+| `mdPowerTools.image.saveFolder` | 保存先フォルダ名 | 任意の文字列 | `assets` |
+| `mdPowerTools.image.altTextMode` | alt textの設定方法 | `prompt` / `empty` / `filename` | `prompt` |
 
 ## 開発
 
@@ -52,8 +52,11 @@ VS Codeの「VSIXからインストール」で `.vsix` をインストール。
 
 ## 動作環境
 
-Windows（クリップボード画像取得にPowerShellを使用）
+VS Code 1.97.0 以上（Document Paste API を使用）
 
 ## ライセンス
 
 MIT
+
+
+ライセンス

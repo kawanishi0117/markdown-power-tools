@@ -16,7 +16,7 @@ const pad = (n: number, len: number): string => String(n).padStart(len, '0');
  * 形式: YYYYMMdd-HHmmss-SSS.png
  * 同名ファイルが存在する場合は -1, -2 ... と連番を付与
  */
-export const generateFileName = (now: Date, existingFiles: string[]): string => {
+export const generateFileName = (now: Date, existingFiles: string[], ext = '.png'): string => {
   const base = [
     pad(now.getFullYear(), 4),
     pad(now.getMonth() + 1, 2),
@@ -29,7 +29,6 @@ export const generateFileName = (now: Date, existingFiles: string[]): string => 
     pad(now.getMilliseconds(), 3),
   ].join('');
 
-  const ext = '.png';
   const candidate = `${base}${ext}`;
 
   if (!existingFiles.includes(candidate)) {

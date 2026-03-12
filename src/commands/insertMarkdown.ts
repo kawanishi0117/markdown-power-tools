@@ -1,14 +1,6 @@
 import * as vscode from 'vscode';
 import { getMarkdownTemplate, type MarkdownTemplateKey } from '../services/templateService';
-
-/** テンプレートをエディタのカーソル位置に挿入する共通関数 */
-const insertTemplate = async (text: string) => {
-  const editor = vscode.window.activeTextEditor;
-  if (!editor) return;
-  await editor.edit((editBuilder) => {
-    editBuilder.insert(editor.selection.active, text);
-  });
-};
+import { insertTemplate } from './editorUtils';
 
 /** 指定キーのMarkdownテンプレートを挿入する */
 const insertMarkdownTemplate = async (key: MarkdownTemplateKey) => {

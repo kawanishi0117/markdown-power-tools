@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import { pasteImage, hasClipboardImage } from './commands/pasteImage';
+import { createPasteImageProvider } from './commands/pasteImage';
 import {
   insertTable,
   insertCodeBlock,
@@ -16,44 +16,36 @@ import {
 
 /** 拡張機能のアクティベーション — 全コマンドを登録 */
 export const activate = (context: vscode.ExtensionContext) => {
+  // Markdown テンプレート挿入コマンド
   const commands: [string, () => Promise<void>][] = [
-    ['mdAndPaste.pasteImage', pasteImage],
-    ['mdAndPaste.insertTable', insertTable],
-    ['mdAndPaste.insertCodeBlock', insertCodeBlock],
-    ['mdAndPaste.insertChecklist', insertChecklist],
-    ['mdAndPaste.insertDetails', insertDetails],
-    ['mdAndPaste.insertBlockquote', insertBlockquote],
-    ['mdAndPaste.insertMermaidFlowchart', insertMermaidFlowchart],
-    ['mdAndPaste.insertMermaidSequence', insertMermaidSequence],
-    ['mdAndPaste.insertMermaidEr', insertMermaidEr],
-    ['mdAndPaste.insertMermaidState', insertMermaidState],
+    ['mdPowerTools.insertTable', insertTable],
+    ['mdPowerTools.insertCodeBlock', insertCodeBlock],
+    ['mdPowerTools.insertChecklist', insertChecklist],
+    ['mdPowerTools.insertDetails', insertDetails],
+    ['mdPowerTools.insertBlockquote', insertBlockquote],
+    ['mdPowerTools.insertMermaidFlowchart', insertMermaidFlowchart],
+    ['mdPowerTools.insertMermaidSequence', insertMermaidSequence],
+    ['mdPowerTools.insertMermaidEr', insertMermaidEr],
+    ['mdPowerTools.insertMermaidState', insertMermaidState],
   ];
 
   for (const [id, handler] of commands) {
     context.subscriptions.push(vscode.commands.registerCommand(id, handler));
   }
 
-  // Ctrl+V オーバーライド: Markdownエディタのテキスト編集中 + 画像クリップボード時のみフック
-  const overridePaste = vscode.commands.registerTextEditorCommand(
-    'editor.action.clipboardPasteAction',
-    async (textEditor) => {
-      // Markdown以外 → 標準貼り付けに委譲
-      if (textEditor.document.languageId !== 'markdown') {
-        await vscode.commands.executeCommand('default:editor.action.clipboardPasteAction');
-        return;
-      }
-
-      // クリップボードに画像がなければ → 標準貼り付けに委譲
-      if (!hasClipboardImage()) {
-        await vscode.commands.executeCommand('default:editor.action.clipboardPasteAction');
-        return;
-      }
-
-      // Markdown かつ画像あり → pasteImage 実行
-      await pasteImage();
-    },
+  // Document Paste API: Markdown 本文への画像貼り付け
+  context.subscriptions.push(
+    vscode.languages.registerDocumentPasteEditProvider(
+      { language: 'markdown' },
+      createPasteImageProvider(),
+      {
+        pasteMimeTypes: ['image/*', 'files'],
+        providedPasteEditKinds: [
+          new vscode.DocumentDropOrPasteEditKind('markdown.image'),
+        ],
+      },
+    ),
   );
-  context.subscriptions.push(overridePaste);
 };
 
 /** 拡張機能のディアクティベーション */

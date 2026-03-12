@@ -1,14 +1,5 @@
-import * as vscode from 'vscode';
 import { getMermaidTemplate, type MermaidTemplateKey } from '../services/templateService';
-
-/** テンプレートをエディタのカーソル位置に挿入する共通関数 */
-const insertTemplate = async (text: string) => {
-  const editor = vscode.window.activeTextEditor;
-  if (!editor) return;
-  await editor.edit((editBuilder) => {
-    editBuilder.insert(editor.selection.active, text);
-  });
-};
+import { insertTemplate } from './editorUtils';
 
 /** 指定キーのMermaidテンプレートを挿入する */
 const insertMermaidTemplate = async (key: MermaidTemplateKey) => {
